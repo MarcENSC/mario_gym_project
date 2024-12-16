@@ -1,13 +1,23 @@
 import gym
+import gym.spaces
 import gym_super_mario_bros
 from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-
+from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 # Import GrayScaleObservation wrapper
 from gym.wrappers import GrayScaleObservation
+from nes_py import NESEnv
+_reset = NESEnv.reset
+
+def reset(*args, **kwargs):
+    obs_info = _reset(*args, **kwargs)
+    obs, info = obs_info if type(obs_info) == tuple else (obs_info, {})
+    return obs, info
+
+NESEnv.reset = reset
 
 class SkipFrame(gym.Wrapper):
     def __init__(self, env, skip):
@@ -45,12 +55,11 @@ class ResizeEnv(gym.ObservationWrapper):
 # Initialize environment
 env = gym.make('SuperMarioBros-1-1-v0', apply_api_compatibility=True, render_mode="human")
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
-
-# Get initial state
-state, _ = env.reset()  # Extract the observation from the reset output
-print("RGB scale : ", state.shape)
-
-# Convert to grayscale
+env = SkipFrame(env, skip=4)
 env = GrayScaleObservation(env, keep_dim=True)
+env = ResizeEnv(env, size=84)
+env = DummyVecEnv([lambda: env])
+env = VecFrameStack(env, 4, channels_order='last')
 state, _ = env.reset()  # Reset the environment again to get the grayscale observation
 print("Gray scale:", state.shape)
+    
