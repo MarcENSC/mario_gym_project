@@ -80,8 +80,9 @@ class DQNAgent:
                 action = greedy_action(self.model, state)
 
             # step
-            print(f"STEP ACTION: {env.step(action)}")
+            
             next_state, reward, done, trunc = env.step(action)
+            print(f"INPUT SHAPE : {state.shape}")
             # record transition in replay buffer
             self.memory.append(state, action, reward, next_state, done)
             print(f"REWARD: {reward}")

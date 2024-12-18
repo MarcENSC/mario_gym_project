@@ -58,7 +58,7 @@ env = gym.make('SuperMarioBros-1-1-v0')
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
 env = SkipFrame(env, skip=4)
 env = GrayScaleObservation(env, keep_dim=True)
-env = ResizeEnv(env, size=84)
+
 
 def display_frame(state):
     plt.figure(figsize=(8, 8))
@@ -91,6 +91,6 @@ config = {'nb_actions': env.action_space.n,
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 10000)
+scores = agent.train(env, 40000)
 plt.plot(scores)
 plt.show()

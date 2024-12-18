@@ -10,7 +10,7 @@ from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 class MarioTester:
     def __init__(self, model_path, env):
         self.model = MarioNetwork_Dqn()
-        self.model.load_state_dict(torch.load(model_path))
+        self.model.load_state_dict(torch.load(model_path, weights_only=True))
         self.model.eval
         self.env = env
 
