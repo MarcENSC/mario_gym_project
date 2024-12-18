@@ -91,6 +91,6 @@ config = {'nb_actions': env.action_space.n,
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 2000)
+scores = agent.train(env, 10000)
 plt.plot(scores)
 plt.show()
