@@ -20,7 +20,6 @@ class DQNAgent:
         self.train_warmup = config['train_warmup'] if 'train_warmup' in config.keys() else 1
 
         ## Replay Buffer
-        ### Number of transitions to sample when training
         self.batch_size = config['batch_size'] if 'batch_size' in config.keys() else 100
         buffer_size = config['buffer_size'] if 'buffer_size' in config.keys() else int(1e5)
         self.memory = ReplayBuffer(buffer_size, device)
@@ -48,10 +47,10 @@ class DQNAgent:
         self.update_target_tau = config['update_target_tau'] if 'update_target_tau' in config.keys() else 0.005
 
     def gradient_step(self):
-        if len(self.memory) > self.batch_size:
+        if len(self.memory) >= self.batch_size:  # Ensure there are enough samples in the buffer
             self.optimizer.zero_grad()
             S, A, R, next_S, D = self.memory.sample(self.batch_size)
-            # loss = <your code>
+
             with torch.no_grad():
                 Q_next_S_max = self.target_model(next_S).max(1)[0].detach()
 
@@ -80,7 +79,6 @@ class DQNAgent:
                 action = greedy_action(self.model, state)
 
             # step
-            
             next_state, reward, done, trunc = env.step(action)
             print(f"INPUT SHAPE : {state.shape}")
             # record transition in replay buffer

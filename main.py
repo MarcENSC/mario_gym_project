@@ -12,12 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tests.mario_test import MarioTester
 if __name__ == "__main__":
     
-    env = gym.make('SuperMarioBros-1-1-v0')
-    env = JoypadSpace(env, SIMPLE_MOVEMENT)
-    env = SkipFrame(env, skip=4)
-    env = GrayScaleObservation(env, keep_dim=True)
-    env = ResizeEnv(env, size=84)
-    print(f"ENV : {env}")
+
 
     # Path to the saved model
     model_path = 'mario_dqn_model.pth'

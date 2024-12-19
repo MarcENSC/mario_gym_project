@@ -54,10 +54,13 @@ class ResizeEnv(gym.ObservationWrapper):
         return frame
 
 # Initialize environment
+
 env = gym.make('SuperMarioBros-1-1-v0')
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
 env = SkipFrame(env, skip=4)
 env = GrayScaleObservation(env, keep_dim=True)
+
+print(f"ENV : {env}")
 
 
 def display_frame(state):
@@ -71,7 +74,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 state_dim = env.observation_space.shape[0]
 n_action = env.action_space.n
-nb_neurons = 24
+
 
 DQN = MarioNetwork_Dqn()
 
