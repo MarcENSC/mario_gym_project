@@ -45,18 +45,32 @@ class DQNAgent:
 
         ## Parameter to update the target DQN with a moving average (Polyak average)
         self.update_target_tau = config['update_target_tau'] if 'update_target_tau' in config.keys() else 0.005
-
     def gradient_step(self):
         if len(self.memory) >= self.batch_size:  # Ensure there are enough samples in the buffer
             self.optimizer.zero_grad()
             S, A, R, next_S, D = self.memory.sample(self.batch_size)
-
+    
+            if S.dim() == 5 and S.shape[1] == 1:
+                S = S.squeeze(1)
+                next_S = next_S.squeeze(1)
+    
             with torch.no_grad():
-                Q_next_S_max = self.target_model(next_S).max(1)[0].detach()
-
+                Q_next_S = self.target_model(next_S)
+                Q_next_S_max = Q_next_S.max(1)[0].detach()
+    
+            print(f"S shape: {S.shape}, A shape: {A.shape}, R shape: {R.shape}, next_S shape: {next_S.shape}, D shape: {D.shape}")
+            print(f"Q_next_S shape: {Q_next_S.shape}, Q_next_S_max shape: {Q_next_S_max.shape}")
+    
+            # Ensure R, Q_next_S_max, and D have compatible shapes
+            R = R.view(-1, 1)
+            Q_next_S_max = Q_next_S_max.view(-1, 1)
+            D = D.view(-1, 1)
+    
             td_objective = R + self.gamma * Q_next_S_max * (1 - D)
-            Q_to_update = self.model(S).gather(1, A.to(torch.long).unsqueeze(1))
-            loss = self.criterion(Q_to_update, td_objective.unsqueeze(1))
+            Q_to_update = self.model(S).gather(1, A.unsqueeze(1))
+            print(f"td_objective shape: {td_objective.shape}, Q_to_update shape: {Q_to_update.shape}")
+    
+            loss = self.criterion(Q_to_update, td_objective)
             loss.backward()
             self.optimizer.step()
             print(f"Loss: {loss.item()}")  # Debug statement
@@ -75,16 +89,21 @@ class DQNAgent:
             # select epsilon-greedy action
             if np.random.rand() < epsilon:
                 action = env.action_space.sample()
+                print(f"Is a random action : a{action}")
+
             else:
-                action = greedy_action(self.model, state)
+                index = greedy_action(self.model, state)
+                action = env.unwrapped._action_map[index]
+                print(f"Is not a random action : a{action}")
 
             # step
-            next_state, reward, done, trunc = env.step(action)
+            print(f"Action taken training: {action}")
+            next_state, reward, done, trunc = env.step([action])
             print(f"INPUT SHAPE : {state.shape}")
             # record transition in replay buffer
             self.memory.append(state, action, reward, next_state, done)
             print(f"REWARD: {reward}")
-            episode_cum_reward += reward
+            episode_cum_reward += float(reward)
 
             # train
             if step > self.train_warmup and step % self.train_freq == 0:

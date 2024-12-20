@@ -1,2 +1,0 @@
-Requirement already satisfied: opencv-python in /home/marc/miniconda3/envs/mario_gym_project/lib/python3.10/site-packages (3.4.18.65)
-Requirement already satisfied: numpy>=1.21.2 in /home/marc/miniconda3/envs/mario_gym_project/lib/python3.10/site-packages (from opencv-python) (1.26.1)
