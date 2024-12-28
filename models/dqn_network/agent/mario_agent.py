@@ -10,50 +10,62 @@ from models.dqn_network.Buffer.Replay_buffer import ReplayBuffer
 from models.dqn_network.agent.greedy_action import greedy_action
 from copy import deepcopy
 
+import json
+
 class DQNAgent:
     def __init__(self, config, model):
-        # Set all parameters
+        # Paramètres initiaux
         self.device = "cuda" if next(model.parameters()).is_cuda else "cpu"
         self.nb_actions = config.get('nb_actions', 4)
         self.gamma = config.get('gamma', 0.95)
 
-        ## Train every N steps
+        # Fréquence d'entraînement
         self.train_freq = config.get('train_freq', 1)
         self.train_warmup = config.get('train_warmup', 1)
 
-        ## Replay Buffer
+        # Mémoire tampon (Replay Buffer)
         self.batch_size = config.get('batch_size', 100)
         buffer_size = config.get('buffer_size', int(1e5))
         self.memory = ReplayBuffer(buffer_size, self.device)
 
-        ## Epsilon-greedy strategy
+        # Stratégie epsilon-greedy
         self.epsilon_max = config.get('epsilon_max', 1.)
         self.epsilon_min = config.get('epsilon_min', 0.01)
         self.epsilon_stop = config.get('epsilon_decay_period', 1000)
         self.epsilon_delay = config.get('epsilon_delay_decay', 20)
         self.epsilon_step = (self.epsilon_max - self.epsilon_min) / self.epsilon_stop
 
-        ## DQN and target DQN
+        # DQN et modèle cible
         self.model = model
         self.target_model = deepcopy(self.model).to(self.device)
 
-        ## Loss / learning rate / optimizer
+        # Perte et optimisation
         self.criterion = config.get('criterion', torch.nn.MSELoss())
         lr = config.get('learning_rate', 0.001)
         self.optimizer = config.get('optimizer', torch.optim.Adam(self.model.parameters(), lr=lr))
 
-        ## Number of gradient steps to perform on each batch sampled from the replay buffer
         self.nb_gradient_steps = config.get('gradient_steps', 1)
-
-        ## Parameter to update the target DQN with a moving average (Polyak average)
         self.update_target_tau = config.get('update_target_tau', 0.005)
+
+        # Logs
+        self.log_file = config.get('log_file', 'training_logs/training_logs.json')
+        self.model_save_path = config.get('model_save_path', 'trained_model/trained_model.pth')
+        self.logs = []
+
+    def save_model(self):
+        torch.save(self.model.state_dict(), self.model_save_path)
+        print(f"Modèle sauvegardé dans {self.model_save_path}")
+
+    def save_logs(self):
+        with open(self.log_file, 'w') as f:
+            json.dump(self.logs, f, indent=4)
+        print(f"Logs sauvegardés dans {self.log_file}")
 
     def gradient_step(self):
         if len(self.memory) > self.batch_size:
             self.optimizer.zero_grad()
             S, A, R, next_S, D = self.memory.sample(self.batch_size)
 
-            # Ensure the states are in the correct format
             S = S.float().to(self.device).squeeze().permute(0, 1, 2, 3)
             next_S = next_S.float().to(self.device).squeeze().permute(0, 1, 2, 3)
             A = A.to(self.device)
@@ -69,7 +81,6 @@ class DQNAgent:
             loss = self.criterion(Q_to_update, td_objective.unsqueeze(1))
             loss.backward()
 
-            # Gradient clipping
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
 
@@ -80,39 +91,45 @@ class DQNAgent:
         state = env.reset()
         epsilon = self.epsilon_max
         step = 0
+
         while episode < max_episode:
-            # Update epsilon
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon - self.epsilon_step)
-            
-            # Select epsilon-greedy action
+
             if np.random.rand() < epsilon:
                 action = env.action_space.sample()
             else:
                 action = greedy_action(self.model, state)
 
-            # Step the environment
             next_state, reward, done, info = env.step(action)
-            
-            # Record transition in replay buffer
+
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
 
-            # Train the model
             if step > self.train_warmup and step % self.train_freq == 0:
                 for _ in range(self.nb_gradient_steps):
                     self.gradient_step()
 
-                # Update target network with Polyak average
                 for param, target_param in zip(self.model.parameters(), self.target_model.parameters()):
                     target_param.data.copy_(self.update_target_tau * param.data + (1 - self.update_target_tau) * target_param.data)
 
-            # Next transition
             step += 1
             if done:
                 episode += 1
-                print(f"Episode {episode:3d}, steps {step:3d}, epsilon {epsilon:6.2f}, "
-                      f"batch size {len(self.memory):5d}, episode return {episode_cum_reward:4.1f}")
+                log_entry = {
+                    "episode": episode,
+                    "steps": step,
+                    "epsilon": epsilon,
+                    "batch_size": len(self.memory),
+                    "episode_return": episode_cum_reward
+                }
+                self.logs.append(log_entry)
+                print(log_entry)
+
+                # Sauvegarde périodique
+                self.save_model()
+                self.save_logs()
+
                 state = env.reset()
                 episode_return.append(episode_cum_reward)
                 episode_cum_reward = 0

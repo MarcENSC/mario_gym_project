@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
-from gym.wrappers import GrayScaleObservation, ResizeObservation
+from gym.wrappers import GrayScaleObservation, ResizeObservation, RecordVideo
 from gym.wrappers import FrameStack
 from models.dqn_network.network.dqn import DQN 
 from models.dqn_network.agent.mario_agent import DQNAgent
@@ -30,10 +30,12 @@ env = ResizeObservation(env, shape=84)
 env = GrayScaleObservation(env, keep_dim=True)
 # 3. Skip 4 frames to speed up the training process :(84, 84, 1) -> (4, 84, 84, 1)
 env = FrameStack(env, num_stack=4)
-
+env = RecordVideo(env, video_folder="video/",episode_trigger=lambda x: x % 1000 == 0, name_prefix="rl-video")
 
 
 env.reset()
+env.seed(0)
+env.render()
 state_dim = env.observation_space.shape
 next_state, reward, done,info = env.step(action=0)
 print(f"{state_dim},\n{next_state.shape},\n {reward},\n {done},\n {info}")
@@ -66,5 +68,8 @@ config = {'nb_actions': env.action_space.n,
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 2000)
-plt.plot(scores);
+scores = agent.train(env, 1)
+plt.plot(scores)
+plt.show()
+plt.savefig("Scores_Training/score.png")
+env.close() 
