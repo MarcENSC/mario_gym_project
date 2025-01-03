@@ -68,6 +68,9 @@ config = {'nb_actions': env.action_space.n,
 agent = DQNAgent(config, DQN)
 scores = agent.train(env, 100)
 plt.plot(scores)
-plt.show()
+plt.xlabel('Episodes')
+plt.ylabel('Scores')
 plt.savefig("Scores_Training/score.png")
+plt.show()
+
 env.close() 
