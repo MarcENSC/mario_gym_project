@@ -22,7 +22,7 @@ class ReplayBuffer:
         batch = random.sample(self.data, batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
         
-        # Conversion en tenseurs PyTorch avec les bonnes dimensions
+        
         states = torch.tensor(np.array(states), dtype=torch.float32).to(self.device)
         actions = torch.tensor(np.array(actions), dtype=torch.long).to(self.device)
         rewards = torch.tensor(np.array(rewards), dtype=torch.float32).to(self.device)

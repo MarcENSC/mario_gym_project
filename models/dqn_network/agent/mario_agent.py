@@ -16,23 +16,24 @@ class DQNAgent:
     def __init__(self, config, model):
         # Paramètres initiaux
         self.device = "cuda" if next(model.parameters()).is_cuda else "cpu"
-        self.nb_actions = config.get('nb_actions', 4)
-        self.gamma = config.get('gamma', 0.95)
+        print(f"Device: {self.device}")
+        self.nb_actions = config.get('nb_actions')
+        self.gamma = config.get('gamma')
 
         # Fréquence d'entraînement
-        self.train_freq = config.get('train_freq', 1)
-        self.train_warmup = config.get('train_warmup', 1)
+        self.train_freq = config.get('train_freq')
+        self.train_warmup = config.get('train_warmup')
 
         # Mémoire tampon (Replay Buffer)
-        self.batch_size = config.get('batch_size', 100)
+        self.batch_size = config.get('batch_size')
         buffer_size = config.get('buffer_size', int(1e5))
         self.memory = ReplayBuffer(buffer_size, self.device)
 
         # Stratégie epsilon-greedy
-        self.epsilon_max = config.get('epsilon_max', 1.)
-        self.epsilon_min = config.get('epsilon_min', 0.01)
-        self.epsilon_stop = config.get('epsilon_decay_period', 1000)
-        self.epsilon_delay = config.get('epsilon_delay_decay', 20)
+        self.epsilon_max = config.get('epsilon_max')
+        self.epsilon_min = config.get('epsilon_min')
+        self.epsilon_stop = config.get('epsilon_decay_period')
+        self.epsilon_delay = config.get('epsilon_delay_decay')
         self.epsilon_step = (self.epsilon_max - self.epsilon_min) / self.epsilon_stop
 
         # DQN et modèle cible
@@ -40,11 +41,11 @@ class DQNAgent:
         self.target_model = deepcopy(self.model).to(self.device)
 
         # Perte et optimisation
-        self.criterion = config.get('criterion', torch.nn.MSELoss())
-        lr = config.get('learning_rate', 0.001)
-        self.optimizer = config.get('optimizer', torch.optim.Adam(self.model.parameters(), lr=lr))
+        self.criterion =torch.nn.MSELoss()
+        lr = config.get('learning_rate')
+        self.optimizer =torch.optim.Adam(self.model.parameters(), lr=lr)
 
-        self.nb_gradient_steps = config.get('gradient_steps', 1)
+        self.nb_gradient_steps = config.get('gradient_steps')
         self.update_target_tau = config.get('update_target_tau', 0.005)
 
         # Logs

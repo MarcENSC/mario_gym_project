@@ -18,9 +18,7 @@ import matplotlib.pyplot as plt
 
 env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0")
 
-# Limit the action-space to
-#   0. walk right
-#   1. jump right
+
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
 
 # Apply Wrappers to the environment
@@ -61,14 +59,14 @@ config = {'nb_actions': env.action_space.n,
           'gamma': 0.95,
           'buffer_size': 100000,
           'epsilon_min': 0.1,
-          'epsilon_max': 1.,
+          'epsilon_max': 1,
           'epsilon_decay_period': 1000000,
           'epsilon_delay_decay': 10000,
           'batch_size': 64}
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 1)
+scores = agent.train(env, 100)
 plt.plot(scores)
 plt.show()
 plt.savefig("Scores_Training/score.png")
