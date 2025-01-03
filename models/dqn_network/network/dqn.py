@@ -5,13 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 
 import torch.nn as nn
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 
 
 class DQN(nn.Module):
     def __init__(self, input_channels=4, output_dim=7):
         super(DQN, self).__init__()
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"input_channels: {input_channels}")
         print(f"output_dim: {output_dim}")
         self.conv1 = nn.Conv2d(input_channels, 32, kernel_size=8, stride=4)

@@ -15,7 +15,7 @@ import json
 class DQNAgent:
     def __init__(self, config, model):
         # Paramètres initiaux
-        self.device = "cuda" if next(model.parameters()).is_cuda else "cpu"
+        self.device = "cuda"
         print(f"Device: {self.device}")
         self.nb_actions = config.get('nb_actions')
         self.gamma = config.get('gamma')
@@ -37,7 +37,7 @@ class DQNAgent:
         self.epsilon_step = (self.epsilon_max - self.epsilon_min) / self.epsilon_stop
 
         # DQN et modèle cible
-        self.model = model
+        self.model = model.to(self.device)
         self.target_model = deepcopy(self.model).to(self.device)
 
         # Perte et optimisation
@@ -67,11 +67,12 @@ class DQNAgent:
             self.optimizer.zero_grad()
             S, A, R, next_S, D = self.memory.sample(self.batch_size)
 
-            S = S.float().to(self.device).squeeze().permute(0, 1, 2, 3)
-            next_S = next_S.float().to(self.device).squeeze().permute(0, 1, 2, 3)
-            A = A.to(self.device)
-            R = R.to(self.device)
-            D = D.to(self.device)
+            S = S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
+            next_S = next_S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
+            A = A.to(self.device, dtype=torch.long)
+            R = R.to(self.device, dtype=torch.float32)
+            D = D.to(self.device, dtype=torch.float32)
+
 
             with torch.no_grad():
                 Q_next_S = self.target_model(next_S)

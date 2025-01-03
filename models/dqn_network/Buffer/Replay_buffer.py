@@ -11,6 +11,7 @@ class ReplayBuffer:
         self.data = []
         self.index = 0  # Index pour ajouter un nouvel élément
         self.device = device
+        print(f"Device buffer: {self.device}")
 
     def append(self, s, a, r, s_, d):
         if len(self.data) < self.capacity:
