@@ -28,7 +28,7 @@ env = ResizeObservation(env, shape=84)
 env = GrayScaleObservation(env, keep_dim=True)
 # 3. Skip 4 frames to speed up the training process :(84, 84, 1) -> (4, 84, 84, 1)
 env = FrameStack(env, num_stack=4)
-env = RecordVideo(env, video_folder="video/",episode_trigger=lambda x: x % 1000 == 0, name_prefix="rl-video")
+env = RecordVideo(env, video_folder="video/",episode_trigger=lambda x: x % 500 == 0 or x==2000 -1 or x==0, name_prefix="rl-video")
 
 
 env.reset()
@@ -67,7 +67,7 @@ config = {'nb_actions': env.action_space.n,
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 100)
+scores = agent.train(env, 2000)
 plt.plot(scores)
 plt.xlabel('Episodes')
 plt.ylabel('Scores')
