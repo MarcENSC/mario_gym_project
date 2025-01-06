@@ -46,7 +46,7 @@ class DQNAgent:
         self.optimizer =torch.optim.Adam(self.model.parameters(), lr=lr)
 
         self.nb_gradient_steps = config.get('gradient_steps')
-        self.update_target_tau = config.get('update_target_tau', 0.005)
+        self.update_target_tau = config.get('update_target_tau')
 
         # Logs
         self.log_file = config.get('log_file', 'training_logs/training_logs.json')
@@ -107,6 +107,7 @@ class DQNAgent:
 
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
+            # Entraînement
 
             if step > self.train_warmup and step % self.train_freq == 0:
                 for _ in range(self.nb_gradient_steps):

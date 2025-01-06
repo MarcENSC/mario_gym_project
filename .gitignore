@@ -1,0 +1,4 @@
+models/dqn_network/trained_model/*
+models/dqn_network/training_logs/*
+models/dqn_network/Scores_Training/*
+models/dqn_network/video/*

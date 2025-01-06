@@ -61,7 +61,8 @@ config = {'nb_actions': env.action_space.n,
           'epsilon_min': 0.1,
           'epsilon_max': 1,
           'epsilon_decay_period': 1000000,
-          'epsilon_delay_decay': 10000,
+          'epsilon_delay_decay': 1000000,
+          'update_target_tau': 1000,
           'batch_size': 64}
 
 # Train agent
