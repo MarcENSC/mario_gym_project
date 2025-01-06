@@ -55,14 +55,14 @@ config = {'nb_actions': env.action_space.n,
           'train_warmup': 10000,
           'train_freq': 10,
           'gradient_steps': 1,
-          'learning_rate': 0.001,
-          'gamma': 0.95,
+          'learning_rate': 0.00025,
+          'gamma':0.99,
           'buffer_size': 100000,
           'epsilon_min': 0.1,
           'epsilon_max': 1,
           'epsilon_decay_period': 1000000,
-          'epsilon_delay_decay': 1000000,
-          'update_target_tau': 1000,
+          'epsilon_delay_decay': 66000,
+          'update_target_tau': 0.001,
           'batch_size': 64}
 
 # Train agent
