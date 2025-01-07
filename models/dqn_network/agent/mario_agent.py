@@ -93,6 +93,9 @@ class DQNAgent:
         state = env.reset()
         epsilon = self.epsilon_max
         step = 0
+        last_mario_position = 0
+        mario_bloque_compteur = 0
+        max_step_mario_bloque = 100
 
         while episode < max_episode:
             if step > self.epsilon_delay:
@@ -104,6 +107,20 @@ class DQNAgent:
                 action = greedy_action(self.model, state)
 
             next_state, reward, done, info = env.step(action)
+
+            # Si mario est bloqué, on arrête l'épisode et on lui inflige un malus de -50
+            if info['x_pos'] == last_mario_position:
+                mario_bloque_compteur += 1
+            else:
+                mario_bloque_compteur = 0
+                last_mario_position = info['x_pos']
+
+            if mario_bloque_compteur > max_step_mario_bloque:
+                done = True
+                reward = -50
+
+           
+
 
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
