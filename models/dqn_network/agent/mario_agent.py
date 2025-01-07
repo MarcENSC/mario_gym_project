@@ -107,13 +107,14 @@ class DQNAgent:
                 action = greedy_action(self.model, state)
 
             next_state, reward, done, info = env.step(action)
-
+            current_pos = info['x_pos']
             # Si mario est bloqué, on arrête l'épisode et on lui inflige un malus de -50
-            if info['x_pos'] <= last_mario_position:
+            if abs(current_pos - last_mario_position) < 1:
                 mario_bloque_compteur += 1
             else:
                 mario_bloque_compteur = 0
-                last_mario_position = info['x_pos']
+            
+            last_mario_position = current_pos
 
             if mario_bloque_compteur > max_step_mario_bloque:
                 done = True
