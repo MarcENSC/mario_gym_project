@@ -15,14 +15,17 @@ class ReplayBuffer:
 
     def append(self, s, a, r, s_, d):
         if len(self.data) < self.capacity:
-            self.data.append(None)
-        self.data[self.index] = (s, a, r, s_, d)
+            self.data.append((s, a, r, s_, d))
+        else:
+            self.data[self.index] = (s, a, r, s_, d)
         self.index = (self.index + 1) % self.capacity
-
+        
     def sample(self, batch_size):
+       
+        if len(self.data) < batch_size:
+            raise ValueError("Not enough samples in the buffer to create a batch")
         batch = random.sample(self.data, batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
-        
         
         states = torch.tensor(np.array(states), dtype=torch.float32).to(self.device)
         actions = torch.tensor(np.array(actions), dtype=torch.long).to(self.device)

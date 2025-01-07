@@ -63,28 +63,27 @@ class DQNAgent:
         print(f"Logs sauvegardés dans {self.log_file}")
 
     def gradient_step(self):
-        if len(self.memory) > self.batch_size:
-            self.optimizer.zero_grad()
-            S, A, R, next_S, D = self.memory.sample(self.batch_size)
+        if len(self.memory) < self.batch_size:
+            return  # Pas assez d'expériences dans le buffer pour une étape de gradient
 
-            S = S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
-            next_S = next_S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
-            A = A.to(self.device, dtype=torch.long)
-            R = R.to(self.device, dtype=torch.float32)
-            D = D.to(self.device, dtype=torch.float32)
-
-
-            with torch.no_grad():
-                Q_next_S = self.target_model(next_S)
-                Q_next_S_max = Q_next_S.max(1)[0].detach()
-
-            td_objective = R + self.gamma * Q_next_S_max * (1 - D)
-            Q_to_update = self.model(S).gather(1, A.to(torch.long).unsqueeze(1))
-            loss = self.criterion(Q_to_update, td_objective.unsqueeze(1))
-            loss.backward()
-
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-            self.optimizer.step()
+        
+        self.optimizer.zero_grad()
+        S, A, R, next_S, D = self.memory.sample(self.batch_size)
+        S = S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
+        next_S = next_S.to(self.device, dtype=torch.float32).squeeze().permute(0, 1, 2, 3)
+        A = A.to(self.device, dtype=torch.long)
+        R = R.to(self.device, dtype=torch.float32)
+        D = D.to(self.device, dtype=torch.float32)
+        with torch.no_grad():
+            Q_next_S = self.target_model(next_S)
+            Q_next_S_max = Q_next_S.max(1)[0].detach()
+        
+        td_objective = R + self.gamma * Q_next_S_max * (1 - D)
+        Q_to_update = self.model(S).gather(1, A.to(torch.long).unsqueeze(1))
+        loss = self.criterion(Q_to_update, td_objective.unsqueeze(1))
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+        self.optimizer.step()
 
     def train(self, env, max_episode):
         episode_return = []
@@ -95,21 +94,23 @@ class DQNAgent:
         step = 0
         last_mario_position = 0
         mario_bloque_compteur = 0
-        max_step_mario_bloque = 100
-        last_time_mario = 0
+        max_step_mario_bloque = 25
+        
 
         while episode < max_episode:
             if step > self.epsilon_delay:
                 epsilon = max(self.epsilon_min, epsilon - self.epsilon_step)
 
             if np.random.rand() < epsilon:
+                
                 action = env.action_space.sample()
             else:
+                
                 action = greedy_action(self.model, state)
 
             next_state, reward, done, info = env.step(action)
             current_pos = info['x_pos']
-            current_time = info['time']
+
             # Si mario est bloqué, on arrête l'épisode et on lui inflige un malus de -50
             if abs(current_pos - last_mario_position) < 1:
                 mario_bloque_compteur += 1
@@ -121,11 +122,9 @@ class DQNAgent:
 
             if mario_bloque_compteur > max_step_mario_bloque:
                 done = True
-                reward += -50
+                reward += -10
 
-            if current_time < last_time_mario:
-                reward += - 1 
-            last_time_mario = current_time
+
            
 
 
@@ -142,6 +141,7 @@ class DQNAgent:
 
             step += 1
             if done:
+                state=env.reset()
                 episode += 1
                 log_entry = {
                     "episode": episode,
