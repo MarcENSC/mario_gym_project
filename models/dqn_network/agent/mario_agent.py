@@ -96,6 +96,7 @@ class DQNAgent:
         last_mario_position = 0
         mario_bloque_compteur = 0
         max_step_mario_bloque = 100
+        last_time_mario = 0
 
         while episode < max_episode:
             if step > self.epsilon_delay:
@@ -108,6 +109,7 @@ class DQNAgent:
 
             next_state, reward, done, info = env.step(action)
             current_pos = info['x_pos']
+            current_time = info['time']
             # Si mario est bloqué, on arrête l'épisode et on lui inflige un malus de -50
             if abs(current_pos - last_mario_position) < 1:
                 mario_bloque_compteur += 1
@@ -120,6 +122,9 @@ class DQNAgent:
                 done = True
                 reward += -50
 
+            if current_time < last_time_mario:
+                reward += - 20
+            last_time_mario = current_time
            
 
 

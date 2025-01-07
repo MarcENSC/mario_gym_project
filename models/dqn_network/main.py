@@ -28,7 +28,7 @@ env = ResizeObservation(env, shape=84)
 env = GrayScaleObservation(env, keep_dim=True)
 # 3. Skip 4 frames to speed up the training process :(84, 84, 1) -> (4, 84, 84, 1)
 env = FrameStack(env, num_stack=4)
-env = RecordVideo(env, video_folder="video/", episode_trigger=lambda x: True, name_prefix="rl-video")
+env = RecordVideo(env, video_folder="video/", name_prefix="rl-video")
 
 env.reset()
 env.seed(0)
