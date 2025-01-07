@@ -115,7 +115,7 @@ class DQNAgent:
                 mario_bloque_compteur += 1
             else:
                 mario_bloque_compteur = 0
-                reward += 1
+                
             
             last_mario_position = current_pos
 
