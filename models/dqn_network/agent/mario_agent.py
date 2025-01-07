@@ -117,7 +117,7 @@ class DQNAgent:
 
             if mario_bloque_compteur > max_step_mario_bloque:
                 done = True
-                reward = -50
+                reward += -50
 
            
 
