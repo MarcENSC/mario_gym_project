@@ -109,7 +109,7 @@ class DQNAgent:
             next_state, reward, done, info = env.step(action)
 
             # Si mario est bloqué, on arrête l'épisode et on lui inflige un malus de -50
-            if info['x_pos'] == last_mario_position:
+            if info['x_pos'] <= last_mario_position:
                 mario_bloque_compteur += 1
             else:
                 mario_bloque_compteur = 0

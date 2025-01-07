@@ -15,4 +15,7 @@ def greedy_action(network, state):
         Q = network(state)
         
         # Return the action with the highest Q-value
+        print(Q)
+        print(torch.argmax(Q))
+        print(torch.argmax(Q).item())
         return torch.argmax(Q).item()
