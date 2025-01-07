@@ -115,6 +115,7 @@ class DQNAgent:
                 mario_bloque_compteur += 1
             else:
                 mario_bloque_compteur = 0
+                reward += 1
             
             last_mario_position = current_pos
 
@@ -123,7 +124,7 @@ class DQNAgent:
                 reward += -50
 
             if current_time < last_time_mario:
-                reward += - 20
+                reward += - 1 
             last_time_mario = current_time
            
 
