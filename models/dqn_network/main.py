@@ -21,7 +21,7 @@ env = gym_super_mario_bros.make("SuperMarioBros-1-1-v0")
 
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
 # Ensure the video folder exists
-video_folder = os.path.join(os.path.dirname(__file__), '../../video')
+video_folder = os.path.join(os.path.dirname(__file__), 'video')
 os.makedirs(video_folder, exist_ok=True)
 print(f"video_folder: {video_folder}")
 
@@ -33,14 +33,12 @@ env = GrayScaleObservation(env, keep_dim=True)
 # 3. Skip 4 frames to speed up the training process :(84, 84, 1) -> (4, 84, 84, 1)
 env = FrameStack(env, num_stack=4)
 env = RecordVideo(env, video_folder=video_folder,
-                  episode_trigger=lambda x: x % 50 == 0,
-                  name_prefix="rl-video")
+                  episode_trigger=lambda x: x%1000==0,
+                  name_prefix=lambda x:f"rl_episode{x}")
 env.reset()
 env.seed(0)
 env.render()
 state_dim = env.observation_space.shape
-next_state, reward, done,info = env.step(action=0)
-print(f"{state_dim},\n{next_state.shape},\n {reward},\n {done},\n {info}")
 
 
 # Declare network
@@ -59,19 +57,20 @@ config = {'nb_actions': env.action_space.n,
           'train_warmup': 1000,
           'train_freq': 3,
           'gradient_steps': 4,
-          'learning_rate': 0.00001,
+          'learning_rate': 0.0001,
           'gamma':0.99,
           'buffer_size': 200000,
           'epsilon_min': 0.1,
           'epsilon_max': 1,
           'epsilon_decay_period': 100000,
-          'epsilon_delay_decay': 5000,
+          'epsilon_delay_decay': 10000,
           'update_target_tau': 0.01,
+          'lr_decay':0.995,
           'batch_size': 128}
 
 # Train agent
 agent = DQNAgent(config, DQN)
-scores = agent.train(env, 200)
+scores = agent.train(env, 10000)
 plt.plot(scores)
 plt.xlabel('Episodes')
 plt.ylabel('Scores')

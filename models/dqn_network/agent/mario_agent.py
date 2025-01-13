@@ -47,6 +47,7 @@ class DQNAgent:
 
         self.nb_gradient_steps = config.get('gradient_steps')
         self.update_target_tau = config.get('update_target_tau')
+        self.lr_decay = config.get('lr_decay')
 
         # Logs
         self.log_file = config.get('log_file', 'training_logs/training_logs.json')
@@ -85,7 +86,9 @@ class DQNAgent:
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
         self.optimizer.step()
 
+
     def train(self, env, max_episode):
+        
         episode_return = []
         episode = 0
         episode_cum_reward = 0
@@ -94,12 +97,19 @@ class DQNAgent:
         step = 0
         last_mario_position = 0
         mario_bloque_compteur = 0
-        max_step_mario_bloque = 25
-        
+        max_step_mario_bloque = 50
+        best_return = float('-inf')
+   
 
         while episode < max_episode:
             if step > self.epsilon_delay:
-                epsilon = max(self.epsilon_min, epsilon - self.epsilon_step)
+                # epsilon = max(self.epsilon_min, epsilon - self.epsilon_step)
+                epsilon *=0.99999975
+                epsilon =max(self.epsilon_min,epsilon)
+
+            if episode % 100 == 0:
+                for param_group in self.optimizer.param_groups:
+                    param_group['lr'] = param_group['lr'] *self.lr_decay
 
             if np.random.rand() < epsilon:
                 
@@ -122,14 +132,25 @@ class DQNAgent:
 
             if mario_bloque_compteur > max_step_mario_bloque:
                 done = True
-                reward += -10
+                print("malus reward -100")
+                reward += -100
 
 
            
 
-
+            
             self.memory.append(state, action, reward, next_state, done)
             episode_cum_reward += reward
+            if episode_cum_reward > best_return:
+                best_return = episode_cum_reward
+                
+                # Save best model
+                torch.save({
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': self.optimizer.state_dict(),
+                    'episode': episode,
+                    'return': best_return
+                }, f"{self.model_save_path}_best.pth")
             # Entraînement
 
             if step > self.train_warmup and step % self.train_freq == 0:
