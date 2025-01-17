@@ -19,6 +19,7 @@ episodes = 40
 for e in range(episodes):
 
     state = env.reset()
+    env.start_video_recorder()
 
     # Play the game!
     while True:
@@ -50,3 +51,5 @@ for e in range(episodes):
     if (e % 20 == 0) or (e == episodes - 1):
         logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.current_step)
 
+env.close_video_recorder()
+env.close()
