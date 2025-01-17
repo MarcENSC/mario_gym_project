@@ -41,8 +41,9 @@ class Mario:
             action = np.random.randint(self.action_dim)
         else:
             state = state[0].__array__() if isinstance(state, tuple) else state.__array__()
-            state = torch.tensor(state, device=self.device).unsqueeze(0)
-            action_values = self.net(state, model="updated")
+            state = torch.tensor(state, device=self.device).float().unsqueeze(0)
+            print(f"state shape :{state.shape}")
+            action_values = self.network(state, model="updated")
             action = torch.argmax(action_values, axis=1).item()
 
         self.current_step += 1
