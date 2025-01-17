@@ -3,7 +3,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import torch
 from network.ddqn import DDQN
-from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage 
+from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
+from tensordict import TensorDict
 import numpy as np 
 
 class Mario:
@@ -28,6 +29,10 @@ class Mario:
         self.exploration_rate_min = 0.1
         self.current_step = 0
         self.save_every = 5e5
+        self.warming_up = 1e4  # min. experiences before training
+        self.learn_every = 3  # no. of experiences between updates to Q_online
+        self.sync_every = 1e4  # no. of experiences between Q_target & Q_online sync
+
 
 
 
@@ -48,16 +53,16 @@ class Mario:
 
 
     def learn(self):
-        if self.curr_step % self.sync_every == 0:
+        if self.current_step % self.sync_every == 0:
             self.sync_Q_target()
 
-        if self.curr_step % self.save_every == 0:
+        if self.current_step % self.save_every == 0:
             self.save()
 
-        if self.curr_step < self.burnin:
+        if self.current_step < self.warming_up:
             return None, None
 
-        if self.curr_step % self.learn_every != 0:
+        if self.current_step % self.learn_every != 0:
             return None, None
 
         # Sample from memory
@@ -101,13 +106,13 @@ class Mario:
     
     def save(self):
         save_path = (
-            self.save_dir / f"mario_net_{int(self.curr_step // self.save_every)}.chkpt"
+            self.save_dir / f"mario_net_{int(self.current_step // self.save_every)}.chkpt"
         )
         torch.save(
             dict(model=self.net.state_dict(), exploration_rate=self.exploration_rate),
             save_path,
         )
-        print(f"MarioNet saved to {save_path} at step {self.curr_step}")
+        print(f"MarioNet saved to {save_path} at step {self.current_step}")
 
 
     @torch.no_grad()

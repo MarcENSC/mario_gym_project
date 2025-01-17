@@ -27,7 +27,7 @@ for e in range(episodes):
         action = mario.act(state)
 
         # Agent performs action
-        next_state, reward, done, trunc, info = env.step(action)
+        next_state, reward, done, info = env.step(action)
 
         # Remember
         mario.cache(state, next_state, action, reward, done)
@@ -48,5 +48,5 @@ for e in range(episodes):
     logger.log_episode()
 
     if (e % 20 == 0) or (e == episodes - 1):
-        logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.curr_step)
+        logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.current_step)
 
