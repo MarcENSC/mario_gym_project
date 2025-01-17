@@ -15,6 +15,10 @@ from env_wrappers.skip_frame_wrapper import SkipFrame
 env = gym.make("SuperMarioBros-1-1-v0")
 env = JoypadSpace(env, SIMPLE_MOVEMENT)
 env = SkipFrame(env, skip=4)
+
 env = GrayScaleObservation(env)
+
+
 env = ResizeObservation(env, shape=84)
+
 env = FrameStack(env, num_stack=4)
