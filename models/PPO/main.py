@@ -1,3 +1,8 @@
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, message="distutils Version classes are deprecated. Use packaging.version instead")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
 from agent.mario import Mario
 from logs.logger import MetricLogger
 from env_wrappers.env_wrapper import env 
@@ -15,17 +20,18 @@ mario = Mario(state_dim=(4, 84, 84), action_dim=env.action_space.n, save_dir=sav
 
 logger = MetricLogger(save_dir)
 
-episodes = 40
+episodes = 40000
 for e in range(episodes):
 
     state = env.reset()
-    env.start_video_recorder()
+    
 
     # Play the game!
     while True:
 
         # Run agent on the state
         action = mario.act(state)
+        
 
         # Agent performs action
         next_state, reward, done, info = env.step(action)
@@ -51,5 +57,5 @@ for e in range(episodes):
     if (e % 20 == 0) or (e == episodes - 1):
         logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.current_step)
 
-env.close_video_recorder()
+
 env.close()

@@ -12,7 +12,7 @@ class Mario:
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.save_dir = save_dir
-        self.gamma = 0.9
+        self.gamma = 0.95
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
@@ -78,7 +78,7 @@ class Mario:
         td_tgt = self.td_target(reward, next_state, done)
 
         # Backpropagate loss through Q_online
-        loss = self.update_Q_online(td_est, td_tgt)
+        loss = self.update_Q_updated(td_est, td_tgt)
 
         return (td_est.mean().item(), loss)
 
@@ -105,6 +105,11 @@ class Mario:
     def recall(self):
         batch = self.memory.sample(self.batch_size).to(self.device)
         state, next_state, action, reward, done = (batch.get(key) for key in ("state", "next_state", "action", "reward", "done"))
+        state=np.squeeze(state, axis=-1)
+        next_state=np.squeeze(next_state, axis=-1)
+        state = state.float()
+        next_state = next_state.float()
+        
         return state, next_state, action.squeeze(), reward.squeeze(), done.squeeze()
     
     def save(self):
@@ -112,7 +117,7 @@ class Mario:
             self.save_dir / f"mario_net_{int(self.current_step // self.save_every)}.chkpt"
         )
         torch.save(
-            dict(model=self.net.state_dict(), exploration_rate=self.exploration_rate),
+            dict(model=self.network.state_dict(), exploration_rate=self.exploration_rate),
             save_path,
         )
         print(f"MarioNet saved to {save_path} at step {self.current_step}")
@@ -133,4 +138,4 @@ class Mario:
         return loss.item()
     
     def sync_Q_target(self):
-        self.network.target.load_state_dict(self.network.updated.state_dict())
+        self.network.target_cnn.load_state_dict(self.network.updated_cnn.state_dict())
